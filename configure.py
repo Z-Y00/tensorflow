@@ -822,10 +822,6 @@ def set_tf_cuda_version(environ_cp):
 
     # Find out where the CUDA toolkit is installed
     default_cuda_path = _DEFAULT_CUDA_PATH
-    if is_windows() or is_cygwin():
-      default_cuda_path = cygpath(
-          environ_cp.get('CUDA_PATH', _DEFAULT_CUDA_PATH_WIN))
-    elif is_linux():
       # If the default doesn't exist, try an alternative default.
       if (not os.path.exists(default_cuda_path)
          ) and os.path.exists(_DEFAULT_CUDA_PATH_LINUX):
@@ -835,16 +831,8 @@ def set_tf_cuda_version(environ_cp):
                      '[Default is %s]: ') % (tf_cuda_version, default_cuda_path)
     cuda_toolkit_path = get_from_env_or_user_or_default(
         environ_cp, 'CUDA_TOOLKIT_PATH', ask_cuda_path, default_cuda_path)
-    if is_windows() or is_cygwin():
-      cuda_toolkit_path = cygpath(cuda_toolkit_path)
 
-    if is_windows():
-      cuda_rt_lib_paths = ['lib/x64/cudart.lib']
-    elif is_linux():
-      cuda_rt_lib_paths = ['%s/libcudart.so.%s' % (x, tf_cuda_version)
-                           for x in ['lib64', 'lib/x86_64-linux-gnu']]
-    elif is_macos():
-      cuda_rt_lib_paths = ['lib/libcudart.%s.dylib' % tf_cuda_version]
+    cuda_rt_lib_paths = "/usr/lib/x86_64-linux-gnu/libcudart.so.9.2"
 
     cuda_toolkit_paths_full = [os.path.join(cuda_toolkit_path, x) for x in cuda_rt_lib_paths]
     if any([os.path.exists(x) for x in cuda_toolkit_paths_full]):
@@ -898,7 +886,7 @@ def set_tf_cudnn_version(environ_cp):
       cuda_dnn_lib_path = 'lib/x64/cudnn.lib'
       cuda_dnn_lib_alt_path = 'lib/x64/cudnn.lib'
     elif is_linux():
-      cuda_dnn_lib_path = 'lib64/libcudnn.so.%s' % tf_cudnn_version
+      cuda_dnn_lib_path = '/usr/lib/x86_64-linux-gnu/libcudnn.so.7'
       cuda_dnn_lib_alt_path = 'libcudnn.so.%s' % tf_cudnn_version
     elif is_macos():
       cuda_dnn_lib_path = 'lib/libcudnn.%s.dylib' % tf_cudnn_version
