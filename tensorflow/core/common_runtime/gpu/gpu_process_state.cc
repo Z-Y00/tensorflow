@@ -118,6 +118,8 @@ Allocator* GPUProcessState::GetGPUAllocator(const GPUOptions& options,
       gpu_allocator = new GPUDebugAllocator(gpu_allocator, cuda_gpu_id);
       gpu_allocator = new GPUNanResetAllocator(gpu_allocator, cuda_gpu_id);
     } else if (useCudaMallocAllocator()) {
+      LOG(INFO) << " useCudaMallocAllocator";
+//edit this if malloc() failed
       // If true, passes all allocation requests through to cudaMalloc
       // useful for doing memory debugging with tools like cuda-memcheck
       // **WARNING** probably will not work in a multi-gpu scenario

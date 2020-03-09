@@ -289,6 +289,8 @@ BaseGPUDevice::~BaseGPUDevice() {
 }
 
 Status BaseGPUDevice::Init(const SessionOptions& options) {
+  #include<iostream>
+  // std::cerr<<"BaseGPUDevice Init"<<std::endl;
   auto executor_status = GpuIdUtil::ExecutorForTfGpuId(tf_gpu_id_);
   if (!executor_status.status().ok()) {
     return errors::Internal("Failed to get StreamExecutor for device ",
@@ -326,6 +328,7 @@ Status BaseGPUDevice::Init(const SessionOptions& options) {
           "Failed to memcopy into scratch buffer for device ",
           tf_gpu_id_.value());
     }
+  // LOG(INFO) << "Memfinish";
 
     device_contexts_.push_back(new GPUDeviceContext(
         i, streams_.back()->compute, streams_.back()->host_to_device,
@@ -676,6 +679,8 @@ void BaseGPUDevice::ComputeAsync(AsyncOpKernel* op_kernel,
                                    op_kernel->IsExpensive());
   se::cuda::ScopedActivateExecutorContext scoped_activation{stream->parent()};
   op_kernel->ComputeAsync(context, done);
+  //don't push the Event if h2d d2h stream, if this stream is only compute stream?
+  static_cast<GPUBFCAllocator*>(gpu_allocator_)->AddEventToStream(op_kernel->name(),stream);
 }
 
 Status BaseGPUDevice::MaybeCopyTensorToGPU(

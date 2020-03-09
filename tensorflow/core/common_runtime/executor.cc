@@ -1851,6 +1851,8 @@ void ExecutorState::DecrementUsingCountOfTensors(const TaggedNode& tagged_node, 
 // TODO: delete code that is redundant
 void ExecutorState::RecordTensorsAccess(const TaggedNode& tagged_node, const TensorValueVec* inputs, const Entry* input_entries, bool stats_flag) {
   if (tagged_node.recompute_handle != -1) return; // skip recompute node
+  #include<iostream>
+  // std::cerr<<"i";
   uint64 time_ = Env::Default()->NowMicros();
   static bool log_tensor_access = (GetEnv("TF_LOG_TENSOR_ACCESS") == "true") ? true : false;
   if (log_tensor_access) {
@@ -1865,39 +1867,43 @@ void ExecutorState::RecordTensorsAccess(const TaggedNode& tagged_node, const Ten
   // int i = -1;
   const GraphView& gview = impl_->gview_;
 
-  static const char* num_nodes_str = getenv("TF_MODEL_NUM_NODES");
-  static bool flag = true;
-  static int num_nodes_ = -1;
-  if (flag) {
-    if (num_nodes_str != nullptr && 
-        strcmp(num_nodes_str, "") != 0) {
-      if (!strings::safe_strto32(num_nodes_str, &num_nodes_)) {
-        LOG(WARNING) << "Invalid value for env-var: TF_MODEL_NUM_NODES";
-      }
-    }
-    else {
-      LOG(WARNING) << "Not set env-var: TF_MODEL_NUM_NODES";
-    }
-    LOG(INFO) << "TF_MODEL_NUM_NODES set to: " << num_nodes_;
-    flag = false;
-  }
+  // static const char* num_nodes_str = getenv("TF_MODEL_NUM_NODES");
+  // static bool flag = true;
+  static int num_nodes_ = gview.num_nodes_;
+  // if (flag) {
+  //   // if (num_nodes_str != nullptr && 
+  //       // strcmp(num_nodes_str, "") != 0) {
+  //     // if (!strings::safe_strto32(num_nodes_str, &num_nodes_)) {
+  //       // LOG(WARNING) << "Invalid value for env-var: TF_MODEL_NUM_NODES";
+  //     // }
+  //   }
+  //   else {
+  //     // LOG(WARNING) << "Not set env-var: TF_MODEL_NUM_NODES";
+  //   }
+  //   // LOG(INFO) << "TF_MODEL_NUM_NODES set to: " << num_nodes_;
+  //   flag = false;
+  // }
+      // std::cerr<<" n: "<<num_nodes_<<" r:"<<gview.num_nodes_;
 
   for(auto &tensor_val : *inputs) {
     if (num_nodes_ == -1) break;
-    if (gview.num_nodes_ != num_nodes_) {
-    #ifdef _DEBUGV2
-      LOG(INFO) << "error node num: " << gview.num_nodes_;
-    #endif
-      if (abs(num_nodes_ - gview.num_nodes_) < 10 || gview.num_nodes_ > 7300) {
-        num_nodes_ = gview.num_nodes_;
-        LOG(INFO) << "TF_MODEL_NUM_NODES has been modified to " << num_nodes_;
-      } else {
-        break;
-      }
-    }
+    // skip this test
+    // if (gview.num_nodes_ != num_nodes_) {
+    // #ifdef _DEBUGV2
+    //   LOG(INFO) << "error node num: " << gview.num_nodes_;
+    // #endif
+    //   if (abs(num_nodes_ - gview.num_nodes_) < 10 || gview.num_nodes_ > 7300) {
+    //     num_nodes_ = gview.num_nodes_;
+    //     LOG(INFO) << "TF_MODEL_NUM_NODES has been modified to " << num_nodes_;
+    //   } else {
+    //     break;
+    //   }
+    // }
     // ++i;
     auto tensor = tensor_val.tensor;
     if (tensor == nullptr) continue;
+      // std::cerr<<"tensor not null";
+
     // LOG(INFO) << tensor_val.name;
     // if (tensor->buffer() == nullptr) {
     //   LOG(INFO) << tensor_val.name << "'s buf_ is nullptr";
@@ -1956,6 +1962,9 @@ void ExecutorState::RecordTensorsAccess(const TaggedNode& tagged_node, const Ten
     // } else {
     //   LOG(INFO) << tensor_val.name << " :" << tensor->data();
     // }
+      #include<iostream>
+  // std::cerr<<"RecordTensorAccess"<<std::endl;
+
     tensor->RecordTensorAccess(tensor_val.name, time_);
     // record tensor access for recomputation
     if (tensor_val.name.empty()) continue;  // TODO: find reason
@@ -2396,10 +2405,12 @@ void ExecutorState::Process(TaggedNode tagged_node, int64 scheduled_nsec) {
     if (tagged_node.is_dead && !IsTransferNode(node)) {
       outputs.resize(item.num_outputs);
     } else {
+      // LOG(INFO) << "what we want" ;
+
       // Prepares inputs.
       bool is_input_dead = false;
       s = PrepareInputs(item, first_input, &inputs, &input_device_contexts,
-                        &input_alloc_attrs, &is_input_dead);
+                        &input_alloc_attrs, &is_input_dead);//add it here???
       // increase using_count of tensors when there is computation using them
       IncrementUsingCountOfTensors(tagged_node, &inputs);
       // record this tensors access to see if any trigger will happen

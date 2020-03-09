@@ -185,6 +185,10 @@ void BFCAllocator::DeallocateChunk(ChunkHandle h) {
 }
 
 void* BFCAllocator::AllocateRaw(size_t unused_alignment, size_t num_bytes) {
+    #include<iostream>
+  // std::cerr<<"ARaw";//<<std::endl;
+  // LOG(INFO)<<"AllocateRaw called";
+
   // Fast path: Try once to allocate without getting the retry_helper_ involved
   void* r = AllocateRawInternal(unused_alignment, num_bytes, false);
   if (r != nullptr) {
@@ -208,6 +212,8 @@ void* BFCAllocator::AllocateRaw(size_t unused_alignment, size_t num_bytes) {
 
 void* BFCAllocator::AllocateRaw(size_t unused_alignment, size_t num_bytes,
                                 const AllocationAttributes& allocation_attr) {
+
+  // LOG(INFO)<<"AllocateRaw called";
   if (allocation_attr.no_retry_on_failure) {
     // Return immediately upon the first failure if this is for allocating an
     // optional scratch space.
@@ -219,12 +225,14 @@ void* BFCAllocator::AllocateRaw(size_t unused_alignment, size_t num_bytes,
       int32 counter_value = log_counter.load(std::memory_order_relaxed);
       if (counter_value < 10) {
         log_counter.store(counter_value + 1, std::memory_order_relaxed);
-        LOG(WARNING)
-            << "Allocator (" << Name() << ") ran out of memory trying "
-            << "to allocate " << strings::HumanReadableNumBytes(num_bytes)
-            << ". The caller indicates that this is not a failure, but"
-            << " may mean that there could be performance gains if more"
-            << " memory were available.";
+        // std::cerr<<"f";//<<std::endl;
+
+        // LOG(WARNING)
+            // << "Allocator (" << Name() << ") ran out of memory trying ";
+            // << "to allocate " << strings::HumanReadableNumBytes(num_bytes)
+            // << ". The caller indicates that this is not a failure, but"
+            // << " may mean that there could be performance gains if more"
+            // << " memory were available.";
       }
     }
     return result;
@@ -290,8 +298,8 @@ void* BFCAllocator::AllocateRawInternal(size_t unused_alignment,
     LOG(WARNING) << "Allocator (" << Name() << ") ran out of memory trying "
                  << "to allocate " << strings::HumanReadableNumBytes(num_bytes)
                  << ".  Current allocation summary follows.";
-    DumpMemoryLog(rounded_bytes);
-    LOG(WARNING) << RenderOccupancy();
+    // DumpMemoryLog(rounded_bytes);
+    // LOG(WARNING) << RenderOccupancy();
   }
   return nullptr;
 }
@@ -405,6 +413,10 @@ void BFCAllocator::DeallocateRawInternal(void* ptr, bool is_swap, std::function<
 
   // Find the chunk from the ptr.
   BFCAllocator::ChunkHandle h = region_manager_.get_handle(ptr);
+  if(h == kInvalidChunkHandle){
+    LOG(INFO)<<"ptr "<<ptr;
+    return;
+  }
   CHECK(h != kInvalidChunkHandle);
 
   // Consider coalescing it.
@@ -492,6 +504,8 @@ void BFCAllocator::RemoveFreeChunkFromBin(BFCAllocator::ChunkHandle h) {
 
 void BFCAllocator::FreeAndMaybeCoalesce(BFCAllocator::ChunkHandle h) {
   Chunk* c = ChunkFromHandle(h);
+  if(!(c->in_use() && (c->bin_num == kInvalidBinNum)))
+  return;
   CHECK(c->in_use() && (c->bin_num == kInvalidBinNum));
 
   // Mark the chunk as no longer in use.
@@ -541,6 +555,10 @@ bool BFCAllocator::TracksAllocationSizes() { return true; }
 size_t BFCAllocator::RequestedSize(const void* ptr) {
   mutex_lock l(lock_);
   BFCAllocator::ChunkHandle h = region_manager_.get_handle(ptr);
+  if(h == kInvalidChunkHandle){
+    LOG(INFO)<<"RequestedSize "<<ptr;
+    return 0;
+  }
   CHECK(h != kInvalidChunkHandle)
       << "Asked for requested size of pointer we never allocated: " << ptr;
   BFCAllocator::Chunk* c = ChunkFromHandle(h);

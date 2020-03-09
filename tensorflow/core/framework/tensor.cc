@@ -127,7 +127,7 @@ class Buffer : public BufferBase {
     alloc_->RecordSwapContext(params, this);
     //alloc_->RecordSwapContext(params);
   }
-
+   
   void IncrementUsingCount() {
     using_count_.fetch_add(1, std::memory_order_relaxed);
   }
@@ -503,7 +503,8 @@ Buffer<T>::Buffer(Allocator* a, int64 n,
 
 template <typename T>
 Buffer<T>::~Buffer() {
-  if (data_) {
+  CleanUpCrossRef();
+  if (data_) { //edit this 
     if (LogMemory::IsEnabled()) {
       RecordDeallocation();
     }
@@ -880,7 +881,10 @@ class SubBuffer : public TensorBuffer {
   T* data_;
   int64 elem_;
 
-  ~SubBuffer() override { root_->Unref(); }
+  ~SubBuffer() override { 
+    CleanUpCrossRef();
+    root_->Unref();
+    }
 
   TF_DISALLOW_COPY_AND_ASSIGN(SubBuffer);
 };

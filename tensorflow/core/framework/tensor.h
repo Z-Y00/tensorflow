@@ -31,6 +31,7 @@ limitations under the License.
 #include "tensorflow/core/platform/types.h"
 #include <vector>
 #include <string>
+#include <list>
 
 namespace tensorflow {
 
@@ -587,7 +588,32 @@ class Tensor {
 // Interface to access the raw ref-counted data buffer.
 class TensorBuffer : public core::RefCounted {
  public:
-  ~TensorBuffer() override {}
+  // ~TensorBuffer() override {}
+  std::list<void**> xRefs;//the location of the pointer in the TensorSwapParams
+  bool trace = false;
+  // bool init = false;
+  void AddCrossRef(void** xref,const std::string& tensor_name){
+       xRefs.push_back(xref);
+    // if(trace&&init)//use log fatal to cauze throw
+      //  LOG(INFO)<<"AddCrossRef reinit "<<tensor_name<<" "<<*xRef<<" "<<xRef;
+    // init = true;
+  }  
+  void Trace(){
+    trace = true;
+    // LOG(INFO)<<"xRef "<<*xRef<<" "<<xRef;//<<(TensorBuffer*)*xRef->;
+  }
+  void CleanUpCrossRef(){
+    for(auto xRef: xRefs){
+     if(xRef!=nullptr){ 
+       if(trace)
+         LOG(INFO)<<"deconstruct "<<*xRef<<" "<<xRef;//<<(TensorBuffer*)*xRef->;
+       *xRef = nullptr;//set the TensorSwapParams.tensor_buffer == nullptr
+     }
+    }
+  }
+  ~TensorBuffer() override {
+    CleanUpCrossRef();
+  }
 
   // data() points to a memory region of size() bytes.
   virtual void* data() const = 0;

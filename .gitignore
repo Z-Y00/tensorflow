@@ -14,6 +14,8 @@ __pycache__
 *.swp
 .vscode/
 cmake_build/
+tf/
+graph.pbtxt
 tensorflow/contrib/cmake/_build/
 .idea/**
 /build/

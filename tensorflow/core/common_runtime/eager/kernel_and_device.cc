@@ -38,18 +38,14 @@ std::string GetEnv(const std::string& env_name) {
   if (env == nullptr) return "";
   return env;
 }
-
-const std::string innodes_file = "/home/frog/vfonel/tf_static_graph/1_innodes.txt";
-const std::string outnodes_file = "/home/frog/vfonel/tf_static_graph/1_outnodes.txt";
-//const std::string innodes_file = "/vpublic01/frog/vfonel/tf_static_graph/1_innodes.txt";
-//const std::string outnodes_file = "/vpublic01/frog/vfonel/tf_static_graph/1_outnodes.txt";
+//TODO(RGY) change this to model dir!
+const std::string innodes_file = "/tmp/tf_static_graph/1_innodes.txt";
+const std::string outnodes_file = "/tmp/tf_static_graph/1_outnodes.txt";
 
 static std::fstream tensor_access_fout;
 static std::fstream fout_in(innodes_file.c_str(), fout_in.out);
 static std::fstream fout_out(outnodes_file.c_str(), fout_out.out);
-/* if (!(fout_in.is_open() && fout_out.is_open())) {
-  LOG(INFO) << "Can not open graph structure file";
-} */
+
 
 namespace tensorflow {
 
@@ -79,6 +75,9 @@ Status KernelAndDevice::Init(const NodeDef& ndef, FunctionLibraryRuntime* flib,
   out->flib_ = flib;
   out->runner_ = runner;
   out->default_runner_ = [](std::function<void()> f) { f(); };
+  //check if the file is valid
+  if (!(fout_in.is_open() && fout_out.is_open()))
+    LOG(FATAL) << "Can not open graph structure file";
   return s;
 }
 
@@ -129,7 +128,7 @@ Status KernelAndDevice::Run(ScopedStepContainer* step_container,
     if (!tensor_name.substr(0, tensor_name.find_first_of('_')).compare(EagerContext::kanonymous_op_name)) {
       is_anonymous = true;
     }
-    
+    LOG(FATAL) << "RecordTensorAccess!";
     t.RecordTensorAccess(tensor_name, time_);
     if (stats != nullptr) {
       auto pos = tensor_name.find_first_of(':');

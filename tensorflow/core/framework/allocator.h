@@ -137,6 +137,7 @@ class Allocator {
       DeallocateRaw(ptr);
     }
   }
+  void AddEventToStream(const string& op_name,se::Stream* stream) {}
 
   virtual void RecordTensorAccess(const string& tensor_name, TensorBuffer* tensor_buf, uint64 _time) {}
 

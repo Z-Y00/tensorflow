@@ -77,6 +77,8 @@ class BFCAllocator : public VisitableAllocator {
   void GetStats(AllocatorStats* stats) override;
 
   void ClearStats() override;
+  virtual void AddEventToStream(const string& op_name,se::Stream* stream){};
+
 
  private:
   struct Bin;

@@ -41,6 +41,9 @@ class VisitableAllocator : public Allocator {
   // Register a visitor guaranteed to be called on each chunk of
   // memory returned to the underlying device.
   virtual void AddFreeVisitor(Visitor visitor) = 0;
+
+  void AddEventToStream(const string& op_name,se::Stream* stream) {};
+
 };
 
 // Needed for cases when a VisitableAllocator gets wrapped for tracking.

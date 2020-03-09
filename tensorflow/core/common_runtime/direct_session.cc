@@ -593,6 +593,10 @@ Status DirectSession::RunInternal(int64 step_id, const RunOptions& run_options,
                                            pool](Executor::Args::Closure c) {
     SchedClosure(pool, std::move(c));
   };
+  //push the signal down to allocator
+  // item.executor->NextIter();
+  GPUBFCAllocator::iter=step_id;
+  // GPUBFCAllocator::NextIter();
   for (const auto& item : executors_and_keys->items) {
     // TODO(zhengxq): support partial run.
     // TODO(zhengxq): if the device picks its own threadpool, we need to assign
@@ -606,7 +610,7 @@ Status DirectSession::RunInternal(int64 step_id, const RunOptions& run_options,
         SchedClosure(device_thread_pool, std::move(c));
       };
     }
-    item.executor->RunAsync(args, barrier->Get());
+    item.executor->RunAsync(args, barrier->Get());//aha??!!
   }
 
   WaitForNotification(&run_state, &step_cancellation_manager,
@@ -742,15 +746,16 @@ Status DirectSession::Run(const RunOptions& run_options,
   // auto now_in_usec = []() -> int64 {return Env::Default()->NowMicros(); };
   // int64 start_time = now_in_usec();
 
-  // LOG(INFO) << "Step id: " << step_id;
+  // LOG(INFO) << "DirectSession::Run Step id: " << step_id;//TODO rgy
   
   TF_RETURN_IF_ERROR(RunInternal(step_id, run_options, &call_frame,
                                  executors_and_keys, run_metadata));
 
   const bool do_trace = (run_options.trace_level() > RunOptions::NO_TRACE);
+  // bool do_trace = true;
   if (do_trace) {
     static int graph_id_ = 0;
-    std::string graph_dir = "/mnt/maweiliang/tf_static_graph/";
+    std::string graph_dir = "/tmp/tf/";
     for (auto& item : executors_and_keys->items) {
       graph_id_++;
       std::string graph_fanout_filename = graph_dir + std::to_string(graph_id_) + "_outnodes.txt";
@@ -790,9 +795,6 @@ Status DirectSession::Run(const RunOptions& run_options,
       fout_n2i.close();
     }
   }
-
-
-  // int64 end_time = now_in_usec();
 
   // Receive outputs.
   if (outputs) {
