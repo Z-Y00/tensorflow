@@ -9,7 +9,7 @@ if [ $# == 1 ];then
     exit
   fi
 fi
-dbg_opt="--copt=-g  " #-c dbg"
+dbg_opt="--copt=-g" #-c dbg"
 
 tf_ver="1.11.0"
 # dst_dir="latest_pkg"

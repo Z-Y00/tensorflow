@@ -273,9 +273,10 @@ static uint64_t iter;
     bool need_in_addr;
     // bool can_deallocate_after_swap_out;
     // bool then_deallocate;
-    float out_fraction;
+    // float out_fraction;
     bool ram_or_gpu = false; // true if in ram; false if in GPU's mem
-    volatile bool if_done = false;//spin lock for the swap
+    volatile bool if_done = true;//spin lock for the swap
+    volatile bool if_done_in = true;//spin lock for the swapin
   };
 
   struct TriggerInfo {
@@ -323,6 +324,7 @@ static uint64_t iter;
     (*func)();
     delete func;
   } */
+ void ResetLRU();
  bool LRUAccess(std::string tensor_name);
  void LRUAdd(std::string tensor_name,TensorSwapParams* param);
 std::list<TensorSwapParams*> q;//the pointer to the swap info

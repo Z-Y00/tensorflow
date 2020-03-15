@@ -114,7 +114,10 @@ class Buffer : public BufferBase {
   Buffer(Allocator* a, int64 n);
   Buffer(Allocator* a, int64 n, const AllocationAttributes& allocation_attr);
 
-  void* data() const override { return data_; }
+  void* data() const override { 
+    // if(data_ == nullptr)   
+        // LOG(INFO)<<"data null";
+     return data_; }
   void set_data(void * data) override { data_ = (T*)data; }
   size_t size() const override { return sizeof(T) * elem_; }
   void RecordTensorAccess(const string & tensor_name, const uint64 time_) {
@@ -868,7 +871,10 @@ class SubBuffer : public TensorBuffer {
     root_->Ref();
   }
 
-  void* data() const override { return data_; }
+  void* data() const override { 
+    if(data_ == nullptr)
+     LOG(INFO)<<"data null";
+   return data_; }
   void set_data(void* data) override { data_ = (T*)data; }
   size_t size() const override { return sizeof(T) * elem_; }
   TensorBuffer* root_buffer() override { return root_; }

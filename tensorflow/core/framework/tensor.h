@@ -590,10 +590,29 @@ class TensorBuffer : public core::RefCounted {
  public:
   // ~TensorBuffer() override {}
   std::list<void**> xRefs;//the location of the pointer in the TensorSwapParams
+  std::list<const std::string> names;//the name of tensors that shared this buffer
+  std::string main_tensor;// the tensor that swapped it out!
   bool trace = false;
+  // void* current_location = nullptr;//if this is shared by several, then we need to set_buff others
+  // bool in_ram = false;//false as in GPU , we don't need this, we just need the data()==nullptr
   // bool init = false;
+  void SetMainName(const std::string& name){
+    main_tensor = name;
+  }
+  std::string& GetMainName(){
+    return main_tensor;
+  }
+  void DebugName(){
+    return;
+      if(names.size()>1){
+         for(auto& name :names)
+            LOG(INFO)<<"shared "<<*(xRefs.begin())<<" " <<name;
+       }
+  }
   void AddCrossRef(void** xref,const std::string& tensor_name){
        xRefs.push_back(xref);
+       names.emplace_back(tensor_name);
+       DebugName();
     // if(trace&&init)//use log fatal to cauze throw
       //  LOG(INFO)<<"AddCrossRef reinit "<<tensor_name<<" "<<*xRef<<" "<<xRef;
     // init = true;
@@ -602,6 +621,14 @@ class TensorBuffer : public core::RefCounted {
     trace = true;
     // LOG(INFO)<<"xRef "<<*xRef<<" "<<xRef;//<<(TensorBuffer*)*xRef->;
   }
+  // void RestoreDataPointer(void* current_location){
+  //   // in_ram = false;//swapped in
+  //   for(auto xRef: xRefs){
+  //    if(xRef!=nullptr){ 
+  //      *xRef = current_location;//set the TensorSwapParams.tensor_buffer == nullptr
+  //    }
+  //   }
+  // }
   void CleanUpCrossRef(){
     for(auto xRef: xRefs){
      if(xRef!=nullptr){ 

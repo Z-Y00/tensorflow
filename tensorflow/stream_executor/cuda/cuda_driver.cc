@@ -865,8 +865,8 @@ CUDADriver::ContextGetSharedMemConfig(CudaContext* context) {
   // "Portable" memory is visible to all CUDA contexts. Safe for our use model.
   CUresult res = cuMemHostAlloc(&host_mem, bytes, CU_MEMHOSTALLOC_PORTABLE);
   if (res != CUDA_SUCCESS) {
-    LOG(ERROR) << "failed to alloc " << bytes
-               << " bytes on host: " << ToString(res);
+    LOG(ERROR) << "failed to alloc " << (bytes>>20)
+               << " Mbytes on host: " << ToString(res);
   }
   return host_mem;
 }
