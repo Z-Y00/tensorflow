@@ -23,24 +23,27 @@ config="tf_cnn_benchmarks.py \
 --num_batches=1\
  --variable_update=parameter_server --memory_optimization=NO_MEM_OPT --num_gpus=1"
 
-#vgg16 baseline 39 LRU 
+#vgg16 baseline 39 LRU opt 55
 # gdb -ex r --args \
-python  $config  \
-  --batch_size=45 --model=vgg16 \
-  > log 2>&1
-exit
-
-# resnet50 baseline 43
 # python  $config  \
-    #  --batch_size=43 --model=resnet50 
-exit
+  # --batch_size=55 --model=vgg16 \
+  # > log 2>&1
+# exit  
 
-# resnet152 baseline 18
-python $config   \
-      --batch_size=18 --model=resnet152
-exit
+# resnet50 baseline 43 opt 60
+# python  $config  \
+    #  --batch_size=60 --model=resnet50 
+# exit
 
+# resnet152 baseline 18 opt 18
+# python $config   \
+      # --batch_size=18 --model=resnet152
+# exit
 
-python  $config  --batch_size=32 --model=inception3
-
-python  $config --batch_size=16 --model=inception4 
+# inception3 baseline 37 opt 
+# 45  images/sec: 32.87
+# 50 images/sec: 31.86
+python  $config  --batch_size=50 --model=inception3
+# exit
+# inception4 baseline 19
+# python  $config --batch_size=19 --model=inception4 

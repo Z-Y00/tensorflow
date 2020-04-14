@@ -595,7 +595,7 @@ Status DirectSession::RunInternal(int64 step_id, const RunOptions& run_options,
   };
   //push the signal down to allocator
   // item.executor->NextIter();
-  GPUBFCAllocator::iter=step_id;
+  GPUBFCAllocator::_step=step_id;
   // GPUBFCAllocator::NextIter();
   for (const auto& item : executors_and_keys->items) {
     // TODO(zhengxq): support partial run.

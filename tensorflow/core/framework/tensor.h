@@ -593,26 +593,36 @@ class TensorBuffer : public core::RefCounted {
   std::list<const std::string> names;//the name of tensors that shared this buffer
   std::string main_tensor;// the tensor that swapped it out!
   bool trace = false;
+  int init_step = 9;
+  int* curr_step = nullptr;
   // void* current_location = nullptr;//if this is shared by several, then we need to set_buff others
   // bool in_ram = false;//false as in GPU , we don't need this, we just need the data()==nullptr
   // bool init = false;
-  void SetMainName(const std::string& name){
-    main_tensor = name;
+  void SetMainName(const std::string& name, int step, int* curr){//this will be called by all shared tensor
+    if(main_tensor.empty()){
+       main_tensor = name;
+       init_step = step;
+       curr_step = curr;
+       LOG(INFO)<<"Set_name "<<init_step<<name;
+    }else{
+      //  LOG(INFO)<<"Set_name "<<main_tensor<<name;
+    }
   }
   std::string& GetMainName(){
-    return main_tensor;
+    return main_tensor; 
   }
   void DebugName(){
-    return;
       if(names.size()>1){
          for(auto& name :names)
             LOG(INFO)<<"shared "<<*(xRefs.begin())<<" " <<name;
-       }
+      }else{
+        LOG(INFO)<<"not shared "<<main_tensor;
+      }
   }
   void AddCrossRef(void** xref,const std::string& tensor_name){
        xRefs.push_back(xref);
        names.emplace_back(tensor_name);
-       DebugName();
+      //  DebugName();
     // if(trace&&init)//use log fatal to cauze throw
       //  LOG(INFO)<<"AddCrossRef reinit "<<tensor_name<<" "<<*xRef<<" "<<xRef;
     // init = true;
@@ -629,15 +639,8 @@ class TensorBuffer : public core::RefCounted {
   //    }
   //   }
   // }
-  void CleanUpCrossRef(){
-    for(auto xRef: xRefs){
-     if(xRef!=nullptr){ 
-       if(trace)
-         LOG(INFO)<<"deconstruct "<<*xRef<<" "<<xRef;//<<(TensorBuffer*)*xRef->;
-       *xRef = nullptr;//set the TensorSwapParams.tensor_buffer == nullptr
-     }
-    }
-  }
+  void CleanUpCrossRef();
+
   ~TensorBuffer() override {
     CleanUpCrossRef();
   }

@@ -51,6 +51,7 @@ limitations under the License.
 #include "tensorflow/core/platform/protobuf.h"
 #include "tensorflow/core/platform/tensor_coding.h"
 #include "tensorflow/core/platform/types.h"
+#include "tensorflow/core/common_runtime/direct_session.h"
 
 #include <cuda_runtime.h>
 
@@ -107,7 +108,7 @@ class BufferBase : public TensorBuffer {
   Allocator* const alloc_;
 };
 
-// Typed ref-counted buffer: T[n].
+// Typed ref-counted buffer: T[n]. 
 template <typename T>
 class Buffer : public BufferBase {
  public:
@@ -115,7 +116,7 @@ class Buffer : public BufferBase {
   Buffer(Allocator* a, int64 n, const AllocationAttributes& allocation_attr);
 
   void* data() const override { 
-    // if(data_ == nullptr)   
+    // if(data_ == nullptr)             
         // LOG(INFO)<<"data null";
      return data_; }
   void set_data(void * data) override { data_ = (T*)data; }
@@ -123,7 +124,7 @@ class Buffer : public BufferBase {
   void RecordTensorAccess(const string & tensor_name, const uint64 time_) {
     //if (alloc_ == nullptr) return;
     alloc_->RecordTensorAccess(tensor_name, this, time_);
-  }
+  } 
 
   void RecordSwapContext(const TensorParams &params) {
     //if (alloc_ == nullptr) return;
@@ -1415,5 +1416,25 @@ gtl::InlinedVector<int64, 4> Tensor::ComputeFlatOuterDims(
   }
   return out_dims;
 }
-
+// (DirectSession::GetStep())
+void TensorBuffer::CleanUpCrossRef(){
+    if(main_tensor.find("v/cg/affine1/weights")!=std::string::npos){ 
+     LOG(INFO)<<"Met at CrossRef "<<main_tensor;
+     return;
+  } 
+    if(curr_step==nullptr){
+      return;
+    }
+    if(init_step<(*curr_step)){
+      LOG(INFO)<<"Ooops, this is last step's ghost";
+      return;
+    }
+    for(auto xRef: xRefs){
+     if(xRef!=nullptr){  
+       if(trace)
+         LOG(INFO)<<"deconstruct "<<*xRef<<" "<<xRef;//<<(TensorBuffer*)*xRef->;
+       *xRef = nullptr;//set the TensorSwapParams.tensor_buffer == nullptr
+     }
+    }
+  } 
 }  // namespace tensorflow

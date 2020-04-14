@@ -92,7 +92,7 @@ class GPUBFCAllocator : public BFCAllocator {
                   Runner runner,
                   se::Stream* s) override;
 
-static uint64_t iter;
+static uint64_t _step;
  private:
 
  bool init = false;

@@ -116,8 +116,13 @@ class DirectSession : public Session {
                                    RunMetadata* run_metadata) override;
   ::tensorflow::Status ReleaseCallable(CallableHandle handle) override;
 
- private:
-  // For access to collective_graph_key_.
+  static int GetStep(){
+    int ans = step_id_counter_;
+    // int ans = 13;
+    return ans;}
+
+ private:  
+  // For access to collective_graph_key_. 
   friend class DirectSessionCollectiveTest;
 
   // We create one executor and its dependent library runtime for

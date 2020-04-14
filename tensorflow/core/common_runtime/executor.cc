@@ -2501,7 +2501,7 @@ void ExecutorState::Process(TaggedNode tagged_node, int64 scheduled_nsec) {
           if (s.ok()) {
             PropagateOutputs(state->tagged_node, state->item, &outputs, &ready);
           } else {
-            LOG(INFO) << "Status is not ok (" << state->tagged_node.node->name() << ": " << s.error_message() << ")";
+            LOG(INFO) <<step_id_<< " Status is not ok (" << state->tagged_node.node->name() << ": " << s.error_message() << ")";
           }
           outputs.clear();
 
